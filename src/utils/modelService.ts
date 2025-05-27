@@ -10,9 +10,19 @@ let model: tf.LayersModel | null = null;
 export async function loadModel(): Promise<boolean> {
   try {
     console.log('Loading AI model...');
-    // Load the model from the public folder
-    model = await tf.loadLayersModel('/models/pneumonia-model/model.json');
-    console.log('Model loaded successfully! 🎉');
+    
+    // Try to load H5 model first, then fall back to JSON model
+    try {
+      // Load H5 model directly (replace 'pneumonia-model.h5' with your actual filename)
+      model = await tf.loadLayersModel('/models/pneumonia-model.h5');
+      console.log('H5 Model loaded successfully! 🎉');
+    } catch (h5Error) {
+      console.log('H5 model not found, trying JSON model...');
+      // Fallback to existing JSON model
+      model = await tf.loadLayersModel('/models/pneumonia-model/model.json');
+      console.log('JSON Model loaded successfully! 🎉');
+    }
+    
     return true;
   } catch (error) {
     console.error('Failed to load model:', error);
