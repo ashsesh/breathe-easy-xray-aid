@@ -10,13 +10,28 @@ let model: tf.LayersModel | null = null;
 export async function loadModel(): Promise<boolean> {
   try {
     console.log('Loading AI model...');
+    console.log('TensorFlow.js version:', tf.version);
     
     // Try to load H5 model first, then fall back to JSON model
     try {
+      console.log('Attempting to load H5 model from: /pneumonia-model.h5');
+      
+      // Check if the file exists first
+      const response = await fetch('/pneumonia-model.h5');
+      console.log('File fetch response status:', response.status);
+      console.log('File fetch response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`H5 file not accessible: ${response.status} ${response.statusText}`);
+      }
+      
       // Load H5 model directly from public directory
       model = await tf.loadLayersModel('/pneumonia-model.h5');
       console.log('H5 Model loaded successfully! 🎉');
+      console.log('Model input shape:', model.inputs[0].shape);
+      console.log('Model output shape:', model.outputs[0].shape);
     } catch (h5Error) {
+      console.error('H5 model loading failed:', h5Error);
       console.log('H5 model not found, trying JSON model...');
       // Fallback to existing JSON model
       model = await tf.loadLayersModel('/models/pneumonia-model/model.json');
@@ -26,6 +41,11 @@ export async function loadModel(): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('Failed to load model:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     return false;
   }
 }
