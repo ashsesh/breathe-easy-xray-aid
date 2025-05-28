@@ -1,4 +1,3 @@
-
 import * as tf from '@tensorflow/tfjs';
 
 // This will hold our loaded model
@@ -12,112 +11,78 @@ export async function loadModel(): Promise<boolean> {
     console.log('Loading AI model...');
     console.log('TensorFlow.js version:', tf.version);
     console.log('Current URL:', window.location.href);
-    console.log('Base URL:', window.location.origin);
     
-    // Try multiple possible paths for H5 model
-    const h5Paths = [
-      '/pneumonia-model.h5',
-      './pneumonia-model.h5',
-      '/public/pneumonia-model.h5'
-    ];
-    
-    for (const h5Path of h5Paths) {
-      try {
-        console.log(`Attempting to load H5 model from: ${h5Path}`);
-        
-        // Check if the file exists first
-        const response = await fetch(h5Path);
-        console.log(`File fetch response for ${h5Path}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.url,
-          type: response.type,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-        
-        if (response.ok) {
-          console.log(`H5 file found at ${h5Path}, attempting to load model...`);
-          // Load H5 model directly from public directory
-          model = await tf.loadLayersModel(h5Path);
-          console.log('H5 Model loaded successfully! 🎉');
-          console.log('Model input shape:', model.inputs[0].shape);
-          console.log('Model output shape:', model.outputs[0].shape);
-          return true;
-        } else {
-          console.log(`H5 file not found at ${h5Path} (${response.status})`);
-        }
-      } catch (h5Error) {
-        console.error(`H5 model loading failed for ${h5Path}:`, h5Error);
+    // First try the JSON model (more reliable for web)
+    try {
+      console.log('Attempting to load JSON model from: /models/pneumonia-model/model.json');
+      
+      // Check if the model.json file exists
+      const response = await fetch('/models/pneumonia-model/model.json');
+      console.log('JSON model fetch response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url
+      });
+      
+      if (response.ok) {
+        console.log('JSON model file found, attempting to load...');
+        model = await tf.loadLayersModel('/models/pneumonia-model/model.json');
+        console.log('JSON Model loaded successfully! 🎉');
+        console.log('Model input shape:', model.inputs[0].shape);
+        console.log('Model output shape:', model.outputs[0].shape);
+        return true;
       }
+    } catch (jsonError) {
+      console.error('JSON model loading failed:', jsonError);
     }
     
-    // Try multiple possible paths for JSON model
-    const jsonPaths = [
-      '/models/pneumonia-model/model.json',
-      './models/pneumonia-model/model.json',
-      '/public/models/pneumonia-model/model.json'
-    ];
-    
-    for (const jsonPath of jsonPaths) {
-      try {
-        console.log(`Attempting to load JSON model from: ${jsonPath}`);
-        
-        // Check if the file exists first
-        const response = await fetch(jsonPath);
-        console.log(`File fetch response for ${jsonPath}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.url,
-          type: response.type
-        });
-        
-        if (response.ok) {
-          console.log(`JSON model file found at ${jsonPath}, attempting to load model...`);
-          model = await tf.loadLayersModel(jsonPath);
-          console.log('JSON Model loaded successfully! 🎉');
-          console.log('Model input shape:', model.inputs[0].shape);
-          console.log('Model output shape:', model.outputs[0].shape);
-          return true;
-        } else {
-          console.log(`JSON model file not found at ${jsonPath} (${response.status})`);
-        }
-      } catch (jsonError) {
-        console.error(`JSON model loading failed for ${jsonPath}:`, jsonError);
+    // Fallback to H5 model if JSON fails
+    try {
+      console.log('Attempting to load H5 model from: /pneumonia-model.h5');
+      
+      const response = await fetch('/pneumonia-model.h5');
+      console.log('H5 model fetch response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url
+      });
+      
+      if (response.ok) {
+        console.log('H5 file found, attempting to load...');
+        // Note: H5 models need to be converted to work properly in browsers
+        model = await tf.loadLayersModel('/pneumonia-model.h5');
+        console.log('H5 Model loaded successfully! 🎉');
+        console.log('Model input shape:', model.inputs[0].shape);
+        console.log('Model output shape:', model.outputs[0].shape);
+        return true;
       }
+    } catch (h5Error) {
+      console.error('H5 model loading failed:', h5Error);
     }
     
-    throw new Error('No model files could be found or loaded');
+    throw new Error('No model files could be loaded. Please check the console for details.');
     
   } catch (error) {
     console.error('Failed to load any model:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
     return false;
   }
 }
 
 /**
- * Prepare the image for the AI (like cleaning vegetables before cooking)
+ * Prepare the image for the AI (adjusted for your model's expected input)
  */
 function preprocessImage(imageElement: HTMLImageElement): tf.Tensor {
-  // Convert image to tensor and resize to what the model expects
   return tf.tidy(() => {
-    // Turn image into numbers the AI can understand
+    // Convert image to tensor
     const tensor = tf.browser.fromPixels(imageElement);
     
-    // Resize to 224x224 (most medical models use this size)
-    const resized = tf.image.resizeBilinear(tensor, [224, 224]);
+    // Your model expects 150x150x3 based on the model.json
+    const resized = tf.image.resizeBilinear(tensor, [150, 150]);
     
-    // Convert to grayscale if needed (many X-ray models expect this)
-    const grayscale = tf.mean(resized, 2, true);
+    // Keep RGB channels (don't convert to grayscale since model expects 3 channels)
+    const normalized = resized.div(255.0);
     
-    // Normalize pixel values to 0-1 range (like converting to percentages)
-    const normalized = grayscale.div(255.0);
-    
-    // Add batch dimension (the AI expects a batch of images, even if it's just one)
+    // Add batch dimension
     const batched = normalized.expandDims(0);
     
     return batched;
