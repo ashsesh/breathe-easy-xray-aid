@@ -11,36 +11,85 @@ export async function loadModel(): Promise<boolean> {
   try {
     console.log('Loading AI model...');
     console.log('TensorFlow.js version:', tf.version);
+    console.log('Current URL:', window.location.href);
+    console.log('Base URL:', window.location.origin);
     
-    // Try to load H5 model first, then fall back to JSON model
-    try {
-      console.log('Attempting to load H5 model from: /pneumonia-model.h5');
-      
-      // Check if the file exists first
-      const response = await fetch('/pneumonia-model.h5');
-      console.log('File fetch response status:', response.status);
-      console.log('File fetch response headers:', response.headers);
-      
-      if (!response.ok) {
-        throw new Error(`H5 file not accessible: ${response.status} ${response.statusText}`);
+    // Try multiple possible paths for H5 model
+    const h5Paths = [
+      '/pneumonia-model.h5',
+      './pneumonia-model.h5',
+      '/public/pneumonia-model.h5'
+    ];
+    
+    for (const h5Path of h5Paths) {
+      try {
+        console.log(`Attempting to load H5 model from: ${h5Path}`);
+        
+        // Check if the file exists first
+        const response = await fetch(h5Path);
+        console.log(`File fetch response for ${h5Path}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          type: response.type,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        if (response.ok) {
+          console.log(`H5 file found at ${h5Path}, attempting to load model...`);
+          // Load H5 model directly from public directory
+          model = await tf.loadLayersModel(h5Path);
+          console.log('H5 Model loaded successfully! 🎉');
+          console.log('Model input shape:', model.inputs[0].shape);
+          console.log('Model output shape:', model.outputs[0].shape);
+          return true;
+        } else {
+          console.log(`H5 file not found at ${h5Path} (${response.status})`);
+        }
+      } catch (h5Error) {
+        console.error(`H5 model loading failed for ${h5Path}:`, h5Error);
       }
-      
-      // Load H5 model directly from public directory
-      model = await tf.loadLayersModel('/pneumonia-model.h5');
-      console.log('H5 Model loaded successfully! 🎉');
-      console.log('Model input shape:', model.inputs[0].shape);
-      console.log('Model output shape:', model.outputs[0].shape);
-    } catch (h5Error) {
-      console.error('H5 model loading failed:', h5Error);
-      console.log('H5 model not found, trying JSON model...');
-      // Fallback to existing JSON model
-      model = await tf.loadLayersModel('/models/pneumonia-model/model.json');
-      console.log('JSON Model loaded successfully! 🎉');
     }
     
-    return true;
+    // Try multiple possible paths for JSON model
+    const jsonPaths = [
+      '/models/pneumonia-model/model.json',
+      './models/pneumonia-model/model.json',
+      '/public/models/pneumonia-model/model.json'
+    ];
+    
+    for (const jsonPath of jsonPaths) {
+      try {
+        console.log(`Attempting to load JSON model from: ${jsonPath}`);
+        
+        // Check if the file exists first
+        const response = await fetch(jsonPath);
+        console.log(`File fetch response for ${jsonPath}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          type: response.type
+        });
+        
+        if (response.ok) {
+          console.log(`JSON model file found at ${jsonPath}, attempting to load model...`);
+          model = await tf.loadLayersModel(jsonPath);
+          console.log('JSON Model loaded successfully! 🎉');
+          console.log('Model input shape:', model.inputs[0].shape);
+          console.log('Model output shape:', model.outputs[0].shape);
+          return true;
+        } else {
+          console.log(`JSON model file not found at ${jsonPath} (${response.status})`);
+        }
+      } catch (jsonError) {
+        console.error(`JSON model loading failed for ${jsonPath}:`, jsonError);
+      }
+    }
+    
+    throw new Error('No model files could be found or loaded');
+    
   } catch (error) {
-    console.error('Failed to load model:', error);
+    console.error('Failed to load any model:', error);
     console.error('Error details:', {
       name: error.name,
       message: error.message,
