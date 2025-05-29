@@ -1,41 +1,16 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageUploader from '@/components/ImageUploader';
 import ImagePreview from '@/components/ImagePreview';
-import LoadingAnalysis from '@/components/LoadingAnalysis';
-import AnalysisResults from '@/components/AnalysisResults';
-import { analyzePneumonia, loadModel } from '@/utils/modelService';
 import { toast } from 'sonner';
 
 const UploadPage = () => {
-  const [currentStep, setCurrentStep] = useState<'upload' | 'preview' | 'analyzing' | 'results'>('upload');
+  const [currentStep, setCurrentStep] = useState<'upload' | 'preview'>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
-  const [analysisResult, setAnalysisResult] = useState<{ result: 'normal' | 'pneumonia'; confidence: number } | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [modelLoaded, setModelLoaded] = useState(false);
-
-  useEffect(() => {
-    const initializeModel = async () => {
-      console.log('Initializing AI model...');
-      try {
-        const loaded = await loadModel();
-        setModelLoaded(loaded);
-        if (loaded) {
-          toast.success('AI model loaded successfully!');
-        } else {
-          toast.error('Failed to load AI model');
-        }
-      } catch (error) {
-        console.error('Model initialization error:', error);
-        toast.error('Error loading AI model');
-      }
-    };
-
-    initializeModel();
-  }, []);
 
   const handleImageSelected = (file: File) => {
     setSelectedFile(file);
@@ -46,34 +21,12 @@ const UploadPage = () => {
   const handleAnalyzeImage = async () => {
     if (!selectedFile) return;
     
-    if (!modelLoaded) {
-      toast.error('AI model is not ready yet. Please wait...');
-      return;
-    }
-    
-    setIsLoading(true);
-    setCurrentStep('analyzing');
-
-    try {
-      // Call the model service to analyze the image
-      const result = await analyzePneumonia(selectedFile);
-      setAnalysisResult(result);
-      setCurrentStep('results');
-      
-      toast.success('Analysis complete!');
-    } catch (error) {
-      console.error('Error analyzing image:', error);
-      toast.error('Error analyzing image. Please try again.');
-      setCurrentStep('preview');
-    } finally {
-      setIsLoading(false);
-    }
+    toast.info('AI analysis feature will be implemented soon!');
   };
 
   const resetToUpload = () => {
     setSelectedFile(null);
     setImagePreviewUrl('');
-    setAnalysisResult(null);
     setCurrentStep('upload');
     
     // Clean up the object URL to avoid memory leaks
@@ -92,16 +45,9 @@ const UploadPage = () => {
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold">Chest X-Ray Analysis</h1>
               <p className="text-gray-600">Upload your chest X-ray image for pneumonia detection</p>
-              {!modelLoaded && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-yellow-800">
-                  <p className="text-sm">🤖 Loading AI model... This may take a moment.</p>
-                </div>
-              )}
-              {modelLoaded && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-3 text-green-800">
-                  <p className="text-sm">✅ AI model ready for analysis!</p>
-                </div>
-              )}
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-blue-800">
+                <p className="text-sm">🚧 AI analysis feature coming soon!</p>
+              </div>
             </div>
 
             {/* Steps indicator */}
@@ -111,16 +57,8 @@ const UploadPage = () => {
                   1
                 </div>
                 <div className={`h-1 w-12 ${currentStep === 'upload' ? 'bg-gray-300' : 'bg-medical-400'}`}></div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'preview' ? 'bg-medical-600 text-white' : currentStep === 'upload' ? 'bg-gray-200 text-gray-500' : 'bg-medical-100 text-medical-600'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'preview' ? 'bg-medical-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                   2
-                </div>
-                <div className={`h-1 w-12 ${currentStep === 'upload' || currentStep === 'preview' ? 'bg-gray-300' : 'bg-medical-400'}`}></div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'analyzing' ? 'bg-medical-600 text-white' : currentStep === 'results' ? 'bg-medical-100 text-medical-600' : 'bg-gray-200 text-gray-500'}`}>
-                  3
-                </div>
-                <div className={`h-1 w-12 ${currentStep === 'results' ? 'bg-medical-400' : 'bg-gray-300'}`}></div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'results' ? 'bg-medical-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                  4
                 </div>
               </div>
             </div>
@@ -128,7 +66,7 @@ const UploadPage = () => {
             {/* Step content */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               {currentStep === 'upload' && (
-                <ImageUploader onImageSelected={handleImageSelected} isLoading={isLoading} />
+                <ImageUploader onImageSelected={handleImageSelected} isLoading={false} />
               )}
               
               {currentStep === 'preview' && imagePreviewUrl && (
@@ -136,20 +74,7 @@ const UploadPage = () => {
                   imageUrl={imagePreviewUrl} 
                   onConfirm={handleAnalyzeImage}
                   onReupload={resetToUpload}
-                  isAnalyzing={isLoading}
-                />
-              )}
-              
-              {currentStep === 'analyzing' && (
-                <LoadingAnalysis />
-              )}
-              
-              {currentStep === 'results' && analysisResult && imagePreviewUrl && (
-                <AnalysisResults 
-                  result={analysisResult.result}
-                  confidence={analysisResult.confidence}
-                  imageUrl={imagePreviewUrl}
-                  onAnalyzeAnother={resetToUpload}
+                  isAnalyzing={false}
                 />
               )}
             </div>
