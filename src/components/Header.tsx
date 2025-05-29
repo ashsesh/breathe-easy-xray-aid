@@ -45,9 +45,6 @@ const Header = () => {
           <Link to="/faq" className="text-sm font-medium hover:text-primary">
             FAQ
           </Link>
-          <Link to="/contact" className="text-sm font-medium hover:text-primary">
-            Contact
-          </Link>
         </nav>
         <div className="flex items-center gap-4">
           <Button asChild variant="default" size="sm">

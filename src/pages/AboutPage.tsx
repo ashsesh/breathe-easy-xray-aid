@@ -15,7 +15,7 @@ const AboutPage = () => {
           <div className="space-y-12">
             <div className="text-center max-w-3xl mx-auto space-y-2">
               <h1 className="text-3xl font-bold">About PneumoScan</h1>
-              <p className="text-gray-600">Learn about our mission, how our technology works, and the team behind the project</p>
+              <p className="text-gray-600">Learn about our mission and how our technology works</p>
             </div>
             
             {/* Our Mission */}
@@ -64,87 +64,6 @@ const AboutPage = () => {
                   <p className="text-gray-600 italic text-sm">
                     Note: These figures represent performance in controlled testing environments. Real-world performance may vary.
                   </p>
-                </div>
-              </div>
-            </section>
-            
-            {/* The Team */}
-            <section className="space-y-6">
-              <h2 className="text-2xl font-bold">Our Team</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Dr. Sarah Johnson" className="w-full h-full object-cover" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Dr. Sarah Johnson</h3>
-                  <p className="text-sm text-gray-500 mb-2">Medical Director</p>
-                  <p className="text-sm text-gray-600">
-                    Pulmonologist with over 15 years of clinical experience, overseeing the medical validity of our platform.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Dr. Michael Chen" className="w-full h-full object-cover" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Dr. Michael Chen</h3>
-                  <p className="text-sm text-gray-500 mb-2">AI Research Lead</p>
-                  <p className="text-sm text-gray-600">
-                    Ph.D. in Computer Science with specialization in medical image analysis and deep learning.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Alex Rodriguez" className="w-full h-full object-cover" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Alex Rodriguez</h3>
-                  <p className="text-sm text-gray-500 mb-2">Software Engineer</p>
-                  <p className="text-sm text-gray-600">
-                    Specializes in web application development and making complex technologies accessible to users.
-                  </p>
-                </div>
-              </div>
-              <div className="text-center mt-8">
-                <p className="text-gray-600 mb-4">
-                  Our team includes medical professionals, AI researchers, and software engineers dedicated to 
-                  improving pneumonia detection through technology.
-                </p>
-                <Button asChild variant="outline">
-                  <Link to="/contact">Contact Our Team</Link>
-                </Button>
-              </div>
-            </section>
-            
-            {/* Research & Publications */}
-            <section className="space-y-6">
-              <h2 className="text-2xl font-bold">Research & Publications</h2>
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <div className="space-y-4">
-                  <div className="p-4 border-b">
-                    <h3 className="text-lg font-semibold">Deep Learning for Automated Detection of Pneumonia in Chest Radiographs</h3>
-                    <p className="text-sm text-gray-500">Journal of Medical Imaging, 2023</p>
-                    <p className="text-gray-600 mt-2">
-                      In this paper, we present our deep learning approach to pneumonia detection and evaluate its performance 
-                      against radiologists' interpretations.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 border-b">
-                    <h3 className="text-lg font-semibold">Improving Healthcare Access through AI: A Case Study in Pneumonia Detection</h3>
-                    <p className="text-sm text-gray-500">AI in Healthcare Conference, 2022</p>
-                    <p className="text-gray-600 mt-2">
-                      This presentation discussed how AI tools like PneumoScan can improve healthcare access in underserved areas.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold">Dataset Diversity and Model Robustness in Medical Imaging AI</h3>
-                    <p className="text-sm text-gray-500">Frontiers in Artificial Intelligence, 2022</p>
-                    <p className="text-gray-600 mt-2">
-                      Our research on ensuring AI models work effectively across diverse patient populations and imaging equipment.
-                    </p>
-                  </div>
                 </div>
               </div>
             </section>
