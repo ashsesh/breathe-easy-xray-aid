@@ -32,10 +32,10 @@ const UploadPage = () => {
       // Simulate analysis delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Alternate between normal and pneumonia results
+      // Alternate between normal and pneumonia results with random confidence
       const result = {
         result: resultToggle ? 'normal' : 'pneumonia' as 'normal' | 'pneumonia',
-        confidence: resultToggle ? 92 : 88 // Different confidence scores for each
+        confidence: Math.floor(Math.random() * 30) + 70 // Random confidence between 70-99%
       };
       
       // Toggle for next analysis
