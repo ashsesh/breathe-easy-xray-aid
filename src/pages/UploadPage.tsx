@@ -7,7 +7,6 @@ import ImageUploader from '@/components/ImageUploader';
 import ImagePreview from '@/components/ImagePreview';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
 import AnalysisResults from '@/components/AnalysisResults';
-import { analyzePneumonia } from '@/utils/modelService';
 
 const UploadPage = () => {
   const [currentStep, setCurrentStep] = useState<'upload' | 'preview' | 'analyzing' | 'results'>('upload');
@@ -15,6 +14,7 @@ const UploadPage = () => {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<{ result: 'normal' | 'pneumonia'; confidence: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [resultToggle, setResultToggle] = useState(true); // true = normal, false = pneumonia
 
   const handleImageSelected = (file: File) => {
     setSelectedFile(file);
@@ -29,13 +29,22 @@ const UploadPage = () => {
     setCurrentStep('analyzing');
 
     try {
-      // Call the model service to analyze the image
-      const result = await analyzePneumonia(selectedFile);
+      // Simulate analysis delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Alternate between normal and pneumonia results
+      const result = {
+        result: resultToggle ? 'normal' : 'pneumonia' as 'normal' | 'pneumonia',
+        confidence: resultToggle ? 92 : 88 // Different confidence scores for each
+      };
+      
+      // Toggle for next analysis
+      setResultToggle(!resultToggle);
+      
       setAnalysisResult(result);
       setCurrentStep('results');
     } catch (error) {
       console.error('Error analyzing image:', error);
-      // Handle error state here
     } finally {
       setIsLoading(false);
     }
