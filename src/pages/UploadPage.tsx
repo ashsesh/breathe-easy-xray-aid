@@ -5,12 +5,16 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageUploader from '@/components/ImageUploader';
 import ImagePreview from '@/components/ImagePreview';
-import { toast } from 'sonner';
+import LoadingAnalysis from '@/components/LoadingAnalysis';
+import AnalysisResults from '@/components/AnalysisResults';
+import { analyzePneumonia } from '@/utils/modelService';
 
 const UploadPage = () => {
-  const [currentStep, setCurrentStep] = useState<'upload' | 'preview'>('upload');
+  const [currentStep, setCurrentStep] = useState<'upload' | 'preview' | 'analyzing' | 'results'>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [analysisResult, setAnalysisResult] = useState<{ result: 'normal' | 'pneumonia'; confidence: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleImageSelected = (file: File) => {
     setSelectedFile(file);
@@ -21,12 +25,26 @@ const UploadPage = () => {
   const handleAnalyzeImage = async () => {
     if (!selectedFile) return;
     
-    toast.info('AI analysis feature will be implemented soon!');
+    setIsLoading(true);
+    setCurrentStep('analyzing');
+
+    try {
+      // Call the model service to analyze the image
+      const result = await analyzePneumonia(selectedFile);
+      setAnalysisResult(result);
+      setCurrentStep('results');
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      // Handle error state here
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetToUpload = () => {
     setSelectedFile(null);
     setImagePreviewUrl('');
+    setAnalysisResult(null);
     setCurrentStep('upload');
     
     // Clean up the object URL to avoid memory leaks
@@ -45,9 +63,6 @@ const UploadPage = () => {
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold">Chest X-Ray Analysis</h1>
               <p className="text-gray-600">Upload your chest X-ray image for pneumonia detection</p>
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-blue-800">
-                <p className="text-sm">🚧 AI analysis feature coming soon!</p>
-              </div>
             </div>
 
             {/* Steps indicator */}
@@ -57,8 +72,16 @@ const UploadPage = () => {
                   1
                 </div>
                 <div className={`h-1 w-12 ${currentStep === 'upload' ? 'bg-gray-300' : 'bg-medical-400'}`}></div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'preview' ? 'bg-medical-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'preview' ? 'bg-medical-600 text-white' : currentStep === 'upload' ? 'bg-gray-200 text-gray-500' : 'bg-medical-100 text-medical-600'}`}>
                   2
+                </div>
+                <div className={`h-1 w-12 ${currentStep === 'upload' || currentStep === 'preview' ? 'bg-gray-300' : 'bg-medical-400'}`}></div>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'analyzing' ? 'bg-medical-600 text-white' : currentStep === 'results' ? 'bg-medical-100 text-medical-600' : 'bg-gray-200 text-gray-500'}`}>
+                  3
+                </div>
+                <div className={`h-1 w-12 ${currentStep === 'results' ? 'bg-medical-400' : 'bg-gray-300'}`}></div>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'results' ? 'bg-medical-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                  4
                 </div>
               </div>
             </div>
@@ -66,7 +89,7 @@ const UploadPage = () => {
             {/* Step content */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               {currentStep === 'upload' && (
-                <ImageUploader onImageSelected={handleImageSelected} isLoading={false} />
+                <ImageUploader onImageSelected={handleImageSelected} isLoading={isLoading} />
               )}
               
               {currentStep === 'preview' && imagePreviewUrl && (
@@ -74,7 +97,20 @@ const UploadPage = () => {
                   imageUrl={imagePreviewUrl} 
                   onConfirm={handleAnalyzeImage}
                   onReupload={resetToUpload}
-                  isAnalyzing={false}
+                  isAnalyzing={isLoading}
+                />
+              )}
+              
+              {currentStep === 'analyzing' && (
+                <LoadingAnalysis />
+              )}
+              
+              {currentStep === 'results' && analysisResult && imagePreviewUrl && (
+                <AnalysisResults 
+                  result={analysisResult.result}
+                  confidence={analysisResult.confidence}
+                  imageUrl={imagePreviewUrl}
+                  onAnalyzeAnother={resetToUpload}
                 />
               )}
             </div>
